@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- 1、自定义监听器测试上下文初始化参数 -->
+	<!-- 监听器是在容器初始化时，实例化其他对象之前进行的 -->
+	<context-param>
+		<param-name>test</param-name>
+		<param-value>123</param-value>
+	</context-param>
+	<listener>
+		<listener-class>webProject.listener.MyApplicationListener</listener-class>
+	</listener>
+
+
+	<!-- 2、实例化servlet容器DispatcherServlet -->
+	<servlet>
+		<servlet-name>springMvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/spring-*.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springMvc</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+
+	<!-- 3、设置自定义过滤器，设置字符集，增加log4j2目录设置，根据web请求路径来设置日志目录 -->
+	<filter>
+		<filter-name>log4jFilter</filter-name>
+		<filter-class>webProject.log4jFilter.Log4jFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>log4jFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+</web-app>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="webProject.emp.dao.UserLoginDao">
+	<!-- 启用二级缓存,配合configuration.xml一起使用 -->
+	<cache></cache>
+
+	<!-- 存储过程的游标返回值 -->
+	<resultMap id="cursorMap" type="java.util.HashMap">
+	</resultMap>
+
+	<!-- 查询返回实体list -->
+	<select id="checkUser" resultType="webProject.emp.entity.User"
+		parameterType="webProject.emp.entity.User">
+		select * from emp where
+		name=#{name} and
+		password=#{password}
+	</select>
+
+	<!-- 修改用户名和密码，做事务控制研究用 -->
+	<update id="updateUser" parameterType="webProject.emp.entity.User">
+		update emp set
+		name=#{name},
+		password=#{password}
+		where id='1'
+	</update>
+
+	<!-- 查询返回实体list -->
+	<select id="getEmp" resultType="webProject.emp.entity.Emp"
+		parameterType="java.util.Map">
+		select * from user
+		<where>
+			1=1
+			<if test="start !='' and start !=null">
+				and id<![CDATA[ > ]]>#{start}
+			</if>
+			<if test="end !='' and end !=null">
+				and id<![CDATA[ <= ]]>#{end}
+			</if>
+		</where>
+		order by id
+	</select>
+
+	<!-- 断点下载获取状态 -->
+	<select id="getPoint" resultType="java.util.Map" parameterType="java.util.Map">
+		select * from point_upload where uuid=#{uuid}
+	</select>
+
+	<!-- 断点下载获取状态 -->
+	<insert id="insertPointStatus" parameterType="java.util.Map">
+		insert into
+		point_upload(uuid,status)
+		values(#{uuid},'0')
+	</insert>
+
+	<!-- 断点下载暂停 -->
+	<update id="updatePoint" parameterType="java.util.Map">
+		update point_upload set
+		<if test="readPoint !='' and readPoint !=null">
+			read_point=#{readPoint},
+		</if>
+		<if test="writePoint !='' and writePoint !=null">
+			write_point=#{writePoint},
+		</if>
+		status='0'
+		where uuid=#{uuid}
+	</update>
+
+	<!-- 断点重启 -->
+	<update id="restart" parameterType="java.util.Map">
+		update point_upload set
+		status='1'
+		where uuid=#{uuid}
+	</update>
+
+	<!-- 测试动态表名 -->
+	<select id="queryByTable" resultType="java.util.HashMap"
+		parameterType="java.util.HashMap">
+		select * from
+		${tableName} where
+		name=#{name} and
+		password=#{password}
+	</select>
+
+	<!-- 测试mybatis调用存储过程 -->
+	<!-- 存储过程返回的值会映射到传递的map中，通过xml中填写的OUT值从map中获取出数据 -->
+	<select id="queryPackage" parameterType="java.util.HashMap"
+		statementType="CALLABLE">
+		{call pkg_ca_wechat_ws.p_query_dept_info(
+		#{in_dept_id,jdbcType=VARCHAR,mode=IN},
+		#{out_cur,jdbcType=CURSOR,mode=OUT,javaType=java.sql.ResultSet,resultMap=cursorMap},
+		#{out_dm,jdbcType=INTEGER,mode=OUT},
+		#{out_msg,jdbcType=VARCHAR,mode=OUT}
+		)}
+	</select>
+
+	<!-- 测试数组方式作为入参 -->
+	<!-- 1、执行sql脚本，创建数组对象 -->
+	<select id="queryPackageByArray" parameterType="java.util.HashMap"
+		statementType="CALLABLE">
+		{call
+		pkg_ca_wechat_ws.p_query_dept_by_arr(
+		#{in_dept_arr,jdbcType=ARRAY,mode=IN},
+		#{out_cur,jdbcType=CURSOR,mode=OUT,javaType=java.sql.ResultSet,resultMap=cursorMap},
+		#{out_dm,jdbcType=INTEGER,mode=OUT},
+		#{out_msg,jdbcType=VARCHAR,mode=OUT}
+		)}
+	</select>
+
+</mapper>

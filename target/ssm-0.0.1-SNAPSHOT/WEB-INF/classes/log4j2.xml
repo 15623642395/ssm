@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+
+<!-- 日志分析详见https://www.cnblogs.com/bjlhx/p/9963964.html -->
+
+<!-- 通过在配置文件中设置<Configuration status =“trace”>来控制log4j2内部状态日志记录,可以不设置 -->
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!-- log4j2.xml以该方式命名，放在resources下，是不需要在web.xml中引入的，系统会自己加载 -->
+<Configuration status="info">
+	<!-- 一、变量配置 -->
+	<Properties>
+		<!--${sys:catalina.home}表示linux中环境变量中的tomcat根目录 -->
+		<!-- 生产中的目录 -->
+		<Property name="log_path">${sys:catalina.home}/logs</Property>
+	</Properties>
+
+	<!-- 二、设置 Appenders -->
+	<Appenders>
+		<!-- 1、控制台输出日志 -->
+		<Console name="Console" target="SYSTEM_OUT">
+			<!-- <PatternLayout pattern="[%p][%d][%t][%c:%L] %m%n" /> -->
+			<PatternLayout pattern="[traceId:${ctx:traceId}][%p][%d][%t]%m%n" />
+		</Console>
+		<!-- 2、文件中记录日志info -->
+		<Routing name="FileInfo">
+			<!-- 获取自定义过滤器中的路径 -->
+			<Routes pattern="${ctx:log4jdir}">
+				<Route>
+					<!-- 打印所有的info及以上级别的信息，可以分模块只打印INFO日志，没必要。此处日期要使用$$ -->
+					<RollingFile name="FileInfo1" immediateFlush="true"
+						fileName="${log_path}/${ctx:log4jdir}/info.log"
+						filePattern="${log_path}/${ctx:log4jdir}/$${date:yyyy-MM-dd}/%d{yyyy-MM-dd}-%i-info.log">
+						<Filters>
+							<ThresholdFilter level="INFO" />
+						</Filters>
+						<PatternLayout charset="UTF-8" pattern="[traceId:${ctx:traceId}][%p][%d][%t][%c:%L] %m%n" />
+						<Policies>
+							<!-- 归档每天的文件 -->
+							<TimeBasedTriggeringPolicy interval="1"
+								modulate="true" />
+							<!-- 每个日志最大容量，生产上建议为200MB，最小100KB -->
+							<SizeBasedTriggeringPolicy size="200MB" />
+						</Policies>
+						<!-- 限制每天文件个数，当归档文件数超过10个之后，会将最新的内容覆盖到原来之上，取代原来日志 -->
+						<DefaultRolloverStrategy compressionLevel="0"
+							max="10" />
+					</RollingFile>
+				</Route>
+			</Routes>
+		</Routing>
+		<!-- 3、文件中记录sql语句 -->
+		<Routing name="SqlLogger">
+			<Routes pattern="${ctx:log4jdir}">
+				<Route>
+					<RollingFile name="SqlLogger1" immediateFlush="true"
+						fileName="${log_path}/${ctx:log4jdir}/sqlInfo.log"
+						filePattern="${log_path}/${ctx:log4jdir}/$${date:yyyy-MM-dd}/%d{yyyy-MM-dd}-sql-%i-sqlInfo.log">
+						<Filters>
+							<ThresholdFilter level="DEBUG" />
+						</Filters>
+						<PatternLayout charset="UTF-8" pattern="[traceId:${ctx:traceId}][%p][%d][%t][%c:%L] %m%n" />
+						<Policies>
+							<TimeBasedTriggeringPolicy interval="1"
+								modulate="true" />
+							<SizeBasedTriggeringPolicy size="200MB" />
+						</Policies>
+						<DefaultRolloverStrategy compressionLevel="0"
+							max="10" />
+					</RollingFile>
+				</Route>
+			</Routes>
+		</Routing>
+
+	</Appenders>
+
+	<Loggers>
+		<!-- 1、单独打印dao层debug信息，sql是debug级别的 -->
+		<Logger name="webProject.emp.dao" level="debug" additivity="true">
+			<appender-ref ref="SqlLogger" level="debug" />
+		</Logger>
+		<!-- 2、只显示大于等于设置等级的日志 -->
+		<Root level="info">
+			<Appender-ref ref="Console" />
+			<Appender-ref ref="FileInfo" />
+		</Root>
+	</Loggers>
+
+</Configuration>

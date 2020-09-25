@@ -16,6 +16,8 @@ import org.apache.logging.log4j.ThreadContext;
 
 /**
  * 项目启动时根据web请求路径设置日志目录
+ * 	注意的是过滤器只能在web程序中使用，拦截器可以在非web程序中使用
+ * 	https://www.cnblogs.com/lukelook/p/11079113.html
  * @author 56525
  * 
  * 注意过滤器中不能使用logger，因为此时的log4jdir还没初始化，要是这里用到了就会报错的
@@ -27,11 +29,18 @@ public class Log4jFilter implements Filter {
 	public static final String log4jdirkey = "log4jdir";
 	public static final String traceId = "traceId";
 
+	/**
+	 * 初始化之前先清空log4jdirkey和traceId，防止内存泄漏
+	 */
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		ThreadContext.remove(log4jdirkey);
+		ThreadContext.remove(traceId);
 	}
 
+	/**
+	 * 初始化之后对log4jdirkey和traceId进行赋值，进而打印日志
+	 */
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
@@ -46,13 +55,15 @@ public class Log4jFilter implements Filter {
 		// 根据请求路径每个方法的名称创建一个文件夹
 		ThreadContext.put(log4jdirkey, log4dir);
 		// 每个请求都给一个uuid，防止日志串联时打印杂乱无章
-		ThreadContext.put(traceId, UUID.randomUUID().toString());
+		ThreadContext.put(traceId, UUID.randomUUID().toString().replace("-", ""));
 		// 调用doFIlter方法,如果还有别的过滤器会自动向下调用
 		chain.doFilter(httpServletRequest, httpServletResponse);
 	}
 
 	@Override
 	public void destroy() {
+		ThreadContext.remove(log4jdirkey);
+		ThreadContext.remove(traceId);
 	}
 
 }

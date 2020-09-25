@@ -158,14 +158,14 @@ public class WebController {
 	@RequestMapping(value = "/web4.do", method = RequestMethod.POST)
 	@ResponseBody
 	public Login login4(@RequestBody Login login) throws InterruptedException {
-		logger.info(Thread.currentThread().getName() + ":入参" + login.getUserName());
+		logger.info(":入参" + login.getUserName());
 		// Thread.sleep(1000);
 		threadBean.setUserName(login.getUserName());
 		threadBean.setPassWord(login.getPassword());
 		// Thread.sleep(1000);
-		logger.info(Thread.currentThread().getName() + ":出参" + threadBean.getUserName());
+		logger.info(":出参" + threadBean.getUserName());
 		// Thread.sleep(1000);
-		logger.info(Thread.currentThread().getName() + ":" + threadBean);
+		logger.info(":" + threadBean);
 		return login;
 	}
 

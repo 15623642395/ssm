@@ -104,7 +104,6 @@ javaProject\utils\ConnectionUtils.class
 javaProject\annotation\MyAutowiredAnnotationBeanPostProcessor.class
 javaProject\jvm\oom\HeapOOM02.class
 javaProject\bankCall\ServiceWindow$2.class
-webProject\log4jFilter\TraceIdUtil.class
 webProject\emp\serviceImp\UserLoginServiceImpNew.class
 javaProject\mail\getMail\Test.class
 javaProject\jvm\staticVariable\StaticVariable02$1.class
